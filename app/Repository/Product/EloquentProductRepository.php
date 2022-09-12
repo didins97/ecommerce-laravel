@@ -3,6 +3,8 @@
 namespace App\Repository\Product;
 
 use App\Models\Product;
+use App\Models\Review;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 
 Class EloquentProductRepository implements ProductRepository
@@ -13,17 +15,6 @@ Class EloquentProductRepository implements ProductRepository
             ->where('status', 'active')
             ->orderBy('created_at', 'desc')
             ->get();
-            // ->map(function($product) {
-            //     return [
-            //         'name' => $product->product_name,
-            //         'price' => $product->price,
-            //         'image' => $product->image,
-            //         'id' => $product->id,
-            //         'cat_name' => $product->cat_info->name,
-            //         'child_cat_name' => $product->child_cat_info->name,
-            //         'type' => $product->type
-            //     ];
-            // });
 
         return $this->responseProducts($products);
     }
@@ -31,12 +22,61 @@ Class EloquentProductRepository implements ProductRepository
 
     public function getProductBySlug($slug)
     {
-        $product = Product::with('cat_info', 'child_cat_info', 'tags')
-            ->where('slug', $slug)
-            ->where('status', 'active')
-            ->first();
+        $product = Product::withCount([
+            'reviews as reviews_count' => function (Builder $q) {
+                $q->where('status', 'active');
+            }])->with([
+            'reviews' => function ($q) {
+                $q->where('is_parent', 1)
+                ->with(['user' => function($q) {
+                    $q->select('id', 'name', 'photo_path');
+                },
 
-        return $this->responseProduct($product);
+                'replies' => function($q) {
+                    $q->where('status', 'active')
+                    ->with(['user' => function($q) {
+                        $q->select('id', 'name', 'role', 'photo_path');
+                    }]);
+                }
+
+                ])->withCount(['replies' => function($q) {
+                    $q->where('status', 'active');
+                }])->where('status', 'active')->get();
+
+            },'cat_info', 'child_cat_info'
+        ])
+        ->where('slug', $slug)
+        ->first();
+
+        return $product;
+
+        // $product = Product::where('slug', $slug)->with([
+
+        //     'reviews' => function ($q) {
+        //         $q->where('is_parent', 1)
+        //         ->with(['user' => function($q) {
+        //             $q->select('id', 'name', 'photo_path');
+        //         },
+
+        //         'replies' => function($q) {
+        //             $q->where('status', 'active')
+        //             ->with(['user' => function($q) {
+        //                 $q->select('id', 'name', 'role', 'photo_path');
+        //             }]);
+        //         }
+
+        //         ])->withCount(['replies' => function($q) {
+        //             $q->where('status', 'active');
+        //         }])->where('status', 'active')->get();
+
+        //     },
+        // ])->first();
+
+        // $product->loadCount(['reviews' => function ($q) {
+        //     $q->where('status', 'active');
+        // }]);
+
+        // return $product;
     }
 
     public function getProductMostSeller()
@@ -53,13 +93,13 @@ Class EloquentProductRepository implements ProductRepository
         return $this->responseProducts($products);
     }
 
-    public function getProductRelated($id)
+    public function getProductRelated($slug)
     {
-        $product = Product::find($id);
-        $products = Product::where('cat_id', $product->cat_id)
-            ->OrWhere('child_cat_id', $product->child_cat_id)
-            ->where('id', '!=', $id)
-            ->where('status', 'active')
+        $product = Product::where('slug', $slug)->first();
+        $products = Product::where('status', 'active')
+            ->where('slug', '!=', $slug)
+            ->where('cat_id', $product->cat_id)
+            ->orWhere('child_cat_id', $product->child_cat_id)
             ->inRandomOrder()
             ->get();
 
@@ -92,7 +132,7 @@ Class EloquentProductRepository implements ProductRepository
             'name' => $product->product_name,
             'price' => $product->price,
             'image' => $product->image,
-            'images' => json_decode($product->images),
+            'images' => $product->images,
             'cat_name' => $product->cat_info->name,
             'child_cat_name' => $product->child_cat_info->name,
             'cat_id' => $product->cat_id,
@@ -101,7 +141,22 @@ Class EloquentProductRepository implements ProductRepository
             'size' => $product->size_id,
             'color' => $product->color_id,
             'desc' => $product->description,
+            'reviews_count' => $product->reviews_count,
+            'reviews' => $product->reviews
         ];
+    }
+
+    public function insertProductReview($request, $id)
+    {
+        return Review::create([
+            'user_id' => auth()->user()->id,
+            'product_id' => $id,
+            'rating' => $request->rate,
+            'comment' => $request->comment,
+            'is_parent' => auth()->user()->role == 'user' ? 1 : 0,
+            'parent_id' => asset($request->parent_id) ? $request->parent_id : 0,
+            'status' => 'active'
+        ]);
     }
 
 }

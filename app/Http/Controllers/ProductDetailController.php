@@ -15,10 +15,18 @@ class ProductDetailController extends Controller
     public function index($slug)
     {
         $product = $this->eloquentProduct->getProductBySlug($slug);
-        $relatedProduct = $this->eloquentProduct->getProductRelated($product['id'])->take(6);
-        // $product->load('cat_info', 'child_cat_info', 'order_details', 'tags');
+        $relatedProduct = $this->eloquentProduct->getProductRelated($slug)->take(3);
 
         return view('frontend.detail', compact('product', 'relatedProduct'));
-        // return $relatedProduct;
+    }
+
+    public function addReview(Request $request, $slug)
+    {
+        return $slug;
+        // if(auth()->check()) {
+        //     if($this->eloquentProduct->insertProductReview($request, $id )) {
+        //         return 'success';
+        //     }
+        // }
     }
 }

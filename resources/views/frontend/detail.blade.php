@@ -26,7 +26,7 @@
                 <div class="product-dtl">
                     <div class="product-info">
                         <div class="product-name">{{$product['name']}}</div>
-                        <div class="reviews-counter">
+                        {{-- <div class="reviews-counter">
                             <div class="rate">
                                 <input type="radio" id="star5" name="rate" value="5" checked />
                                 <label for="star5" title="text">5 stars</label>
@@ -40,7 +40,7 @@
                                 <label for="star1" title="text">1 star</label>
                               </div>
                             <span>3 Reviews</span>
-                        </div>
+                        </div> --}}
                         <div class="product-price-discount">
                             <span>{{Helper::getPrice($product['price'])}}</span>
                             {{-- <span class="line-through">$29.00</span> --}}
@@ -156,4 +156,120 @@
     </div>
 </section>
 
+<section class="product_section layout_padding">
+    <div class="container">
+        <div class="heading_container heading_center">
+            <h2>
+                Ulasan Produk
+            </h2>
+        </div>
+
+        <div class="product-info-tabs">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                  <li class="nav-item">
+                    <a class="nav-link active" id="description-tab" data-bs-toggle="tab" role="tab" data-bs-target="#description" aria-controls="#description" aria-selected="true" type="button">Reviews ({{$product['reviews_count']}})</a>
+                  </li>
+                  <li class="nav-item">
+                    <a class="nav-link" id="review-tab" data-bs-toggle="tab" data-bs-target="#review" role="tab" aria-controls="review" type="button" aria-selected="false">Your Review</a>
+                  </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                  <div class="tab-pane fade show active mt-3" id="description" role="tabpanel" aria-labelledby="description-tab">
+                    <div class="row">
+                        <div class="col">
+                        @foreach ($product['reviews'] as $pr)
+                          <div class="d-flex flex-start">
+                            <img class="rounded-circle shadow-1-strong me-3"
+                              src="{{$pr['user']['image'] != '' ? asset('storage/images/'.$pr['user']['image']) : asset('img/avatar-5.png') }}" alt="avatar" width="65"
+                              height="65" />
+                                <div class="flex-grow-1 flex-shrink-1">
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                    <p class="mb-1">
+                                        {{$pr['user']['name']}} <span class="small">- {{$pr['created_at'] != '' ? $pr['created_at']->diffForHumans() : ''}}</span>
+                                    </p>
+                                    <div class="star_container">
+                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                        <i class="fa fa-star" aria-hidden="true"></i>
+                                    </div>
+                                    </div>
+                                    <p class="small mb-0">
+                                    {{$pr['comment']}}
+                                    </p>
+                                </div>
+                                @if ($pr['replies'] != null)
+                                @foreach ($pr['replies'] as $reply)
+                                    <div class="d-flex flex-start mt-4">
+                                    <a class="me-3" href="#">
+                                        <img class="rounded-circle shadow-1-strong"
+                                        src="{{asset('img/avatar-5.png') }}" alt="avatar"
+                                        width="65" height="65" />
+                                    </a>
+                                    <div class="flex-grow-1 flex-shrink-1">
+                                        <div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <p class="mb-1">
+                                            Admin <span class="small">- {{$reply['created_at'] != '' ? $reply['created_at']->diffForHumans() : ''}}</span>
+                                            </p>
+                                        </div>
+                                        <p class="small mb-0">
+                                            {{$reply['comment']}}
+                                        </p>
+                                        </div>
+                                    </div>
+                                    </div>
+                                @endforeach
+                                @endif
+                            </div>
+                          </div>
+                          @endforeach
+                        </div>
+                      </div>
+                  </div>
+                  <div class="tab-pane fade" id="review" role="tabpanel" aria-labelledby="review-tab">
+                      {{-- <div class="review-heading">REVIEWS</div> --}}
+                      {{-- <p class="mb-20">There are no reviews yet.</p> --}}
+                      <form class="review-form" method="POST" action="{{ route('product.review', $product['slug']) }}">
+                        @csrf
+                        <div class="form-group">
+                            <label>Your rating</label>
+                            <div class="reviews-counter">
+                                <div class="rate">
+                                    <input type="radio" id="star5" name="rate" value="5" />
+                                    <label for="star5" title="text">5 stars</label>
+                                    <input type="radio" id="star4" name="rate" value="4" />
+                                    <label for="star4" title="text">4 stars</label>
+                                    <input type="radio" id="star3" name="rate" value="3" />
+                                    <label for="star3" title="text">3 stars</label>
+                                    <input type="radio" id="star2" name="rate" value="2" />
+                                    <label for="star2" title="text">2 stars</label>
+                                    <input type="radio" id="star1" name="rate" value="1" />
+                                    <label for="star1" title="text">1 star</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Your message</label>
+                            <textarea class="form-control" name="comment" rows="10"></textarea>
+                        </div>
+                        @auth
+                            <button class="round-black-btn" type="submit">Submit Review</button>
+                        @endauth
+                        @guest
+                            <button class="round-black-btn">Login</button>
+                        @endguest
+                    </form>
+                  </div>
+            </div>
+        </div>
+    </div>
+</section>
+
 @endsection
+
+@push('scripts')
+    
+@endpush

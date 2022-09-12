@@ -51,4 +51,5 @@ Route::middleware('auth')->group(function() {
     Route::post('/cities', [App\Http\Controllers\CheckoutController::class, 'getCity'])->name('city');
     Route::post('/shipping-cost', [App\Http\Controllers\CheckoutController::class, 'shippingCost'])->name('shipping.cost');
     Route::post('/total-cost', [App\Http\Controllers\CheckoutController::class, 'totalCost'])->name('total.cost');
+    Route::post('/product/{product}/review', [App\Http\Controllers\ProductDetailController::class, 'addReview'])->name('product.review');
 });

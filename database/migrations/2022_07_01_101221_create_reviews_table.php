@@ -18,7 +18,7 @@ class CreateReviewsTable extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('product_id')->constrained();
             $table->text('comment');
-            $table->integer('rating');
+            $table->integer('rating')->nullable();
             $table->timestamps();
         });
     }

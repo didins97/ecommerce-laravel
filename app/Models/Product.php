@@ -31,8 +31,18 @@ class Product extends Model
         return $this->belongsToMany(Tag::class, 'products_tags', 'product_id', 'tag_id');
     }
 
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'product_id');
+    }
+
     public function getRouteKeyName()
     {
         return 'slug';
+    }
+
+    protected function getImagesAttribute($value)
+    {
+        return json_decode($value);
     }
 }

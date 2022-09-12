@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\OrderRequest;
+use use App\Http\Requests\OrderRequest;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -127,18 +127,3 @@ class CheckoutController extends Controller
         return $cities;
     }
 
-
-    public function shippingCost(Request $request)
-    {
-        return $this->ongkirService->cost($request->city_id, $request->weight);
-    }
-
-    public function totalCost(Request $request)
-    {
-        return [
-            'shipping_cost' => $request->shipping_cost,
-            'total' => $request->total_product + $request->shipping_cost,
-        ];
-    }
-
-}
